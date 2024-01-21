@@ -1,0 +1,1 @@
+require_code(character.name)
