@@ -330,6 +330,12 @@ async function do_heal_attack() {
 	const spot = afk_spots[query][character.name]
 	const priority = afk_spots[query].priority
 
+	const dragold_priest = 'earthPri'
+	if (query == 'dragold' && !Object.keys(get_party()).includes(dragold_priest) && parent.S.dragold.live) {
+		leave_party()
+		send_party_request(dragold_priest)
+	}
+
 	loot()
 
 	try {
