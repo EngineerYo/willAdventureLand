@@ -241,7 +241,7 @@ async function do_consume() {
 	else use_skill('regen_mp')
 
 	var items_entries = Object.entries(character.items)
-	var elixir = items_entries.find(([idx, val]) => val.name == 'elixirvit0')
+	var elixir = items_entries.find(([idx, val]) => val?.name == 'elixirvit0')
 	var has_elixir = character.slots?.elixir?.name == 'elixirvit0'
 	if (elixir && !has_elixir) consume(elixir[0])
 
@@ -358,6 +358,41 @@ async function do_heal_attack() {
 		if (heal_target) {
 			use_skill('heal', heal_target)
 			return heal_target
+		}
+
+		let target = get_targeted_monster()
+		if (!target || !is_in_range(target, 'attack')) {
+			// First, check if anyone else in the party has a target
+			const party_members = Object.keys(get_party())
+			const party_targets = Object.values(parent.entities)
+				.filter(m => m.type == 'monster')
+				.filter(m => party_members.includes(m.target))
+				.filter(m => m.hp > 500)
+				.sort(m => distance(character, m))
+
+			if (party_targets.length > 0) {
+				target = party_targets.shift()
+				change_target(target)
+			}
+			else {
+				// If nobody else has a target, choose a new one
+				const target = Object.values(parent.entities)
+					.filter(m =>
+						m.type == 'monster' &&
+						priority.includes(m['mtype']) &&
+						distance(character, m) < character.range
+					)
+					.sort((a, b) => {
+						let prio_a = priority.findIndex(s => s == a['mtype'])
+						let prio_b = priority.findIndex(s => s == b['mtype'])
+
+						if (prio_a == prio_b) return 0
+						else if (prio_a < prio_b) return -1
+						else if (prio_a > prio_b) return 1
+					})
+					.shift()
+				change_target(target)
+			}
 		}
 		if (get('t_query') == 'dragold') {
 			let player_count = Object.entries(parent.entities).filter(([id, char]) => char.type == 'character').length
