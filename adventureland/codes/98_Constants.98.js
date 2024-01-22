@@ -1,5 +1,6 @@
 const bboxes = {
 	'crabx': G.maps['main'].monsters.find(s => s.type == 'crabx'),
+	'crab': G.maps['main'].monsters.find(s => s.type == 'crab'),
 }
 const get_center = (bbox) => {
 	return { x: 0.5 * (bbox.boundary[0] + bbox.boundary[2]), y: 0.5 * (bbox.boundary[1] + bbox.boundary[3]) }
@@ -92,9 +93,9 @@ var module = {
 				priority: ['grinch', 'phoenix', 'cutebee', 'squig', 'squigtoad', 'crab']
 			},
 			dragold: {
-				Tiberian: { map: 'cave', x: 1200, y: -900 },
-				Godrick: { map: 'cave', x: 1190, y: -890 },
-				Llywelyn: { map: 'cave', x: 1200, y: -880 },
+				Tiberian: { map: 'cave', x: 1200, y: -800 },
+				Godrick: { map: 'cave', x: 1190, y: -790 },
+				Llywelyn: { map: 'cave', x: 1200, y: -780 },
 				priority: ['grinch', 'dragold']
 			},
 			crabx: {
@@ -103,11 +104,17 @@ var module = {
 				Llywelyn: { map: 'main', x: get_center(bboxes['crabx']).x - 50, y: get_center(bboxes['crabx']).y + 25 * Math.cos(Math.PI / 4) },
 				priority: ['grinch', 'cutebee', 'phoenix', 'crabx', 'crabxx']
 			},
+			crab: {
+				Tiberian: { map: 'main', x: get_center(bboxes['crab']).x + 50, y: get_center(bboxes['crab']).y + 25 * Math.cos(Math.PI / 4) },
+				Godrick: { map: 'main', x: get_center(bboxes['crab']).x, y: get_center(bboxes['crab']).y - 25 * Math.cos(Math.PI / 4) },
+				Llywelyn: { map: 'main', x: get_center(bboxes['crab']).x - 50, y: get_center(bboxes['crab']).y + 25 * Math.cos(Math.PI / 4) },
+				priority: ['grinch', 'cutebee', 'phoenix', 'crab']
+			},
 		},
 		merchant_name: 'Taliyah',
 		keep_in_inventory: ['mpot0', 'mpot1', 'hpot0', 'hpot1', 'elixirluck', 'tracker', 'cake', 'elixirvit0', 'cdragon',],
 		gold_to_keep: 100000,
-		upgrade_whitelist: ['helmet', 'wcap', 'pants', 'wbreeches', 'gloves', 'wgloves', 'coat', 'wattire', 'shoes', 'wshoes', 'sshield', 'coat1', 'shoes1', 'gloves1', 'pants1', 'helmet1', 'firestaff', 'firesword', 'quiver', 'blade', 'staff'],
+		upgrade_whitelist: ['helmet', 'wcap', 'pants', 'wbreeches', 'gloves', 'wgloves', 'coat', 'wattire', 'shoes', 'wshoes', 'sshield', 'coat1', 'shoes1', 'gloves1', 'pants1', 'helmet1', 'firestaff', 'firesword', 'quiver', 'blade'],
 		combine_whitelist: ['strearring', 'dexearring', 'intearring', 'dexamulet', 'stramulet', 'intamulet', 'hpbelt', 'vitring', 'hpamulet', 'wbook0', 'vitearring', 'strring', 'intring', 'dexring'],
 		exchange_whitelist: ['gem0', 'gem1', 'gemfragment', 'armorbox', 'weaponbox', 'greenenvelope'],
 		sell_whitelist: ['stinger', 'mushroomstaff', 'wbasher', 'ringsj', 'cclaw'],

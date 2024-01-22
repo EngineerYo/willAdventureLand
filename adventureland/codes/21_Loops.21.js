@@ -296,7 +296,7 @@ async function do_attack() {
 						distance(character, m) < character.range
 					)
 					.sort((a, b) => {
-						let prio_a = priority.findIndex(s => s == a['mtype']) // ERROR POINTS TO THIS LINE
+						let prio_a = priority.findIndex(s => s == a['mtype'])
 						let prio_b = priority.findIndex(s => s == b['mtype'])
 
 						if (prio_a == prio_b) return 0
@@ -309,7 +309,8 @@ async function do_attack() {
 		}
 		if (get('t_query') == 'dragold') {
 			let player_count = Object.entries(parent.entities).filter(([id, char]) => char.type == 'character').length
-			if (target && can_attack(target) && Object.keys(get_party()) && player_count > 5) {
+			let in_party = Object.keys(get_party()).length > 0
+			if (target && can_attack(target) && in_party && player_count > 5) {
 				await attack(target)
 			}
 		}
@@ -352,7 +353,16 @@ async function do_heal_attack() {
 			use_skill('heal', heal_target)
 			return heal_target
 		}
-		else do_attack()
+		if (get('t_query') == 'dragold') {
+			let player_count = Object.entries(parent.entities).filter(([id, char]) => char.type == 'character').length
+			let in_party = Object.keys(get_party()).length > 0
+			if (target && can_attack(target) && in_party && player_count > 5) {
+				await attack(target)
+			}
+		}
+		else if (get('t_query') == null) {
+			if (target && can_attack(target)) await attack(target)
+		}
 	}
 	catch (e) {
 		console.error(e)
