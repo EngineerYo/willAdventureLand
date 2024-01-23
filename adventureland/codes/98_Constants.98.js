@@ -68,8 +68,8 @@ const afk_spots = {
 	},
 	bigbird: {
 		Tiberian: { map: 'main', x: 1200, y: 400 },
-		Llywelyn: { map: 'main', x: 1250, y: 400 },
-		Godrick: { map: 'main', x: 1300, y: 400 },
+		Godrick: { map: 'main', x: 1250, y: 400 },
+		Llywelyn: { map: 'main', x: 1300, y: 400 },
 		priority: ['grinch', 'snowman', 'phoenix', 'cutebee', 'bigbird']
 	},
 	stoneworm: {
