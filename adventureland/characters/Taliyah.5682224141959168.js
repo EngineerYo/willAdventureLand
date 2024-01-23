@@ -1,4 +1,4 @@
-const { merchant_loop, form_party, combine_loop, upgrade_loop, exchange_loop, sell_loop } = require_code('21_Loops')
+const { merchant_loop, form_party, combine_loop, upgrade_loop, exchange_loop, sell_loop, report } = require_code('21_Loops')
 
 load_code(96)
 
@@ -18,6 +18,10 @@ upgrade_loop()
 combine_loop()
 exchange_loop()
 sell_loop()
+
+character.all((name, data) => {
+	report()
+})
 
 // setInterval(() => {
 // 	if (parent.S.dragold.live) set('t_query', 'dragold')
