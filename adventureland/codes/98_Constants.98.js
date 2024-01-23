@@ -1,6 +1,7 @@
 const bboxes = {
 	'crabx': G.maps['main'].monsters.find(s => s.type == 'crabx'),
 	'crab': G.maps['main'].monsters.find(s => s.type == 'crab'),
+	'boar': G.maps['winterland'].monsters.find(s => s.type == 'boar'),
 }
 const get_center = (bbox) => {
 	return { x: 0.5 * (bbox.boundary[0] + bbox.boundary[2]), y: 0.5 * (bbox.boundary[1] + bbox.boundary[3]) }
@@ -109,6 +110,12 @@ var module = {
 				Godrick: { map: 'main', x: get_center(bboxes['crab']).x, y: get_center(bboxes['crab']).y - 25 * Math.cos(Math.PI / 4) },
 				Llywelyn: { map: 'main', x: get_center(bboxes['crab']).x - 50, y: get_center(bboxes['crab']).y + 25 * Math.cos(Math.PI / 4) },
 				priority: ['grinch', 'cutebee', 'phoenix', 'crab']
+			},
+			boar: {
+				Tiberian: { map: 'winterland', x: -200, y: -1150 },
+				Godrick: { map: 'winterland', x: -200, y: -1100 },
+				Llywelyn: { map: 'winterland', x: -200, y: -1050 },
+				priority: ['grinch', 'snowman', 'phoenix', 'cutebee', 'boar']
 			},
 		},
 		merchant_name: 'Taliyah',
