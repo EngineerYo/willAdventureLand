@@ -117,11 +117,11 @@ async function upgrade_loop() {
 		return
 	}
 	// Loop through entire inventory. Compare items to whitelist, upgrade with lowest compatable scroll
-	let available_scrolls = ['scroll0']//, 'scroll1']
+	let available_scrolls = ['scroll0', 'scroll1']
 	let item_upgrade = character.items
 		.reduce((acc, cur) => {
 			if (cur === null || cur.level === undefined || G.items[cur.name].upgrade === undefined) return acc
-			if (cur.level < acc.level && upgrade_whitelist.includes(cur.name) && available_scrolls.includes(get_scroll(cur))) return cur
+			if (cur.level < acc.level && upgrade_whitelist.includes(cur.name) && available_scrolls.includes(get_scroll(cur)) && cur.level < 7) return cur
 			else return acc
 		},
 			{ level: 100 }
@@ -462,6 +462,10 @@ async function mage_loop() {
 	mage_regen_loop()
 	mage_attack_loop()
 	mage_skill_loop()
+
+	character.all((name, data) => {
+		report()
+	})
 }
 async function priest_loop() {
 	const query = get('query')
@@ -483,6 +487,10 @@ async function priest_loop() {
 	priest_regen_loop()
 	priest_attack_loop()
 	priest_skill_loop()
+
+	character.all((name, data) => {
+		report()
+	})
 }
 
 async function do_ranger_skill() {
@@ -638,6 +646,8 @@ function report() {
 	set_obj['y'] = character.y
 	set_obj['map'] = character.map
 
+	set_obj['server'] = parent.server_name
+
 	set_obj['hp'] = character.hp
 	set_obj['mp'] = character.mp
 	set_obj['max_hp'] = character.max_hp
@@ -680,5 +690,6 @@ module = {
 		ranger_loop,
 		mage_loop,
 		priest_loop,
+		report,
 	},
 }
