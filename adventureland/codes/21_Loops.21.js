@@ -184,6 +184,9 @@ async function combine_loop() {
 }
 async function exchange_loop() {
 	try {
+		var exchange_info = get('exchange')
+		if (exchange_info == null) exchange_info = {}
+
 		if ([
 			character.q.exchange,
 			character.map != exchange_loc.map,
@@ -205,6 +208,7 @@ async function exchange_loop() {
 			exchange_loop()
 		})
 
+		set('exchange', exchange_info)
 	}
 	catch (e) {
 		console.error(e)
