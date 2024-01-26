@@ -258,7 +258,8 @@ async function do_attack() {
 	const priority = afk_spots[query].priority
 
 	const dragold_priest = 'earthPri'
-	if (query == 'dragold' && !Object.keys(get_party()).includes(dragold_priest) && parent.S.dragold.live) {
+	const found_priest = Object.keys(parent.entities).includes(dragold_priest)
+	if (query == 'dragold' && !Object.keys(get_party()).includes(dragold_priest) && parent.S.dragold.live && found_priest) {
 		leave_party()
 		send_party_request(dragold_priest)
 	}

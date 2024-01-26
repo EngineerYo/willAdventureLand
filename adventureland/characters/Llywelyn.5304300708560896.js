@@ -7,3 +7,8 @@ give_merchant_loop()
 form_party()
 
 mage_loop()
+
+
+setInterval(() => {
+	if (character.rip && !parent.S.dragold.live) respawn()
+}, 250)
