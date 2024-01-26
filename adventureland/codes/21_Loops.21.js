@@ -184,9 +184,6 @@ async function combine_loop() {
 }
 async function exchange_loop() {
 	try {
-		var exchange_info = get('exchange')
-		if (exchange_info == null) exchange_info = {}
-
 		if ([
 			character.q.exchange,
 			character.map != exchange_loc.map,
@@ -208,7 +205,6 @@ async function exchange_loop() {
 			exchange_loop()
 		})
 
-		set('exchange', exchange_info)
 	}
 	catch (e) {
 		console.error(e)
@@ -259,6 +255,7 @@ async function do_attack() {
 
 	const dragold_priest = 'earthPri'
 	const found_priest = Object.keys(parent.entities).includes(dragold_priest)
+	// checking for dragold priest isn't working
 	if (query == 'dragold' && !Object.keys(get_party()).includes(dragold_priest) && parent.S.dragold.live && found_priest) {
 		leave_party()
 		send_party_request(dragold_priest)
