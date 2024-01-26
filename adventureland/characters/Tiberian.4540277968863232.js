@@ -8,4 +8,12 @@ form_party()
 give_merchant_loop()
 
 ranger_loop()
+<<<<<<< Updated upstream
 //draw_loop()
+=======
+draw_loop()
+
+setInterval(() => {
+	if (character.rip && !parent.S.dragold.live) respawn()
+}, 250)
+>>>>>>> Stashed changes

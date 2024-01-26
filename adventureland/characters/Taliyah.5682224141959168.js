@@ -23,7 +23,12 @@ character.all((name, data) => {
 	report()
 })
 
-// setInterval(() => {
-// 	if (parent.S.dragold.live) set('t_query', 'dragold')
-// 	else set('t_query', null)
-// }, 2000)
+const {draw_monster_ranges} = require_code(99)
+const {monster_lookup} = require_code(98)
+draw_monster_ranges(monster_lookup())
+
+
+
+setInterval(() => {
+	if (character.rip && !parent.S.dragold.live) respawn()
+}, 250)

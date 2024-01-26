@@ -7,3 +7,7 @@ give_merchant_loop()
 form_party()
 
 priest_loop()
+
+setInterval(() => {
+	if (character.rip && !parent.S.dragold.live) respawn()
+}, 250)
