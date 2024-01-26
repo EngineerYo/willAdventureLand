@@ -68,6 +68,28 @@ const draw_target = (from, to) => {
 	}
 }
 
+const draw_monster_ranges = (ranges) => {
+	clear_drawings()
+
+	for (let mtype in ranges) {
+		for (let range of ranges[mtype]) {
+			// Is this monster range even in the right map?
+			if (range.map != parent.map.map_name) continue
+			console.log(range.map, parent.map.map_name)
+
+			// Does this monster even have a boundary?
+			if (!range.boundary) continue
+
+			// Draw a rectangle around the range
+			let [l, u, r, d] = range.boundary
+			draw_line(l, u, r, u, 2)
+			draw_line(r, u, r, d, 2)
+			draw_line(r, d, l, d, 2)
+			draw_line(l, d, l, u, 2)
+		}
+	}
+}
+
 module = {
 	exports: {
 		draw_range_and_motion,
