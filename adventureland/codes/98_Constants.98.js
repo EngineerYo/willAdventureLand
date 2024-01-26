@@ -10,7 +10,6 @@ const get_center = (bbox) => {
 var monster_lookup = () => {
 	var monsters = {}
 	Object.entries(G.maps).forEach(([map_key, map_obj]) => {
-		log(map_key)
 		map_obj.monsters?.forEach((m_val, m_key) => {
 			m_val['map'] = map_key
 			m_val['dnu'] = false
@@ -137,12 +136,18 @@ const afk_spots = {
 var module = {
 	exports: {
 		afk_spots,
-		merchant_name: 'Taliyah',
+		merchant_name: 'willMerch',
 		keep_in_inventory: ['mpot0', 'mpot1', 'hpot0', 'hpot1', 'elixirluck', 'tracker', 'cake', 'elixirvit0', 'cdragon',],
 		gold_to_keep: 100000,
+<<<<<<< Updated upstream
 		upgrade_whitelist: ['helmet', 'wcap', 'pants', 'wbreeches', 'gloves', 'wgloves', 'coat', 'wattire', 'shoes', 'wshoes', 'sshield', 'coat1', 'shoes1', 'gloves1', 'pants1', 'helmet1', 'firestaff', 'firesword', 'quiver', 'blade', 't2bow', 'firebow'],
 		combine_whitelist: ['strearring', 'dexearring', 'intearring', 'dexamulet', 'stramulet', 'intamulet', 'hpbelt', 'vitring', 'hpamulet', 'wbook0', 'vitearring', 'strring', 'intring', 'dexring'],
 		exchange_whitelist: ['gem0', 'gem1', 'gemfragment', 'armorbox', 'weaponbox', 'greenenvelope', 'goldenegg', 'candycane'],
+=======
+		upgrade_whitelist: ['helmet', 'wcap', 'pants', 'wbreeches', 'gloves', 'wgloves', 'coat', 'wattire', 'shoes', 'wshoes', 'sshield', 'coat1', 'shoes1', 'gloves1', 'pants1', 'helmet1', 'firestaff', 'fireblade', 'quiver', 'blade', 'basher', 'firestars',],
+		combine_whitelist: ['strearring', 'dexearring', 'intearring', 'dexamulet', 'stramulet', 'intamulet', 'hpbelt', 'vitring', 'hpamulet', 'wbook0', 'vitearring', 'strring', 'intring', 'dexring'],
+		exchange_whitelist: ['gem0', 'gem1', 'gemfragment', 'armorbox', 'weaponbox', 'greenenvelope', 'candy0', 'candy1'],
+>>>>>>> Stashed changes
 		sell_whitelist: ['stinger', 'mushroomstaff', 'wbasher', 'ringsj', 'cclaw'],
 		upgrade_loc: { x: -180, y: -185, map: 'main', map_obj: G.maps['main'] },
 		compound_loc: { x: -235, y: -185, map: 'main', map_obj: G.maps['main'] },
