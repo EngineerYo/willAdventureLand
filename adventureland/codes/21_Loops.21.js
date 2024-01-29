@@ -53,7 +53,7 @@ async function merchant_loop() {
 		const my_characters = get_characters().map(s => s.name)
 		const entities = Object.assign({}, parent.entities, { [character.name]: parent.character })
 
-		if (!is_on_cooldown('regen_mp') && character.mp < character.max_mp) use_skill('regen_mp')
+		if (!is_on_cooldown('regen_mp') && character.mp + 500 < character.max_mp) use_skill('use_mp')
 		for (let [id, char] of Object.entries(entities)) {
 			if (char.type != 'character') continue
 			let checks = [
@@ -111,7 +111,7 @@ async function upgrade_loop() {
 	if ([
 		character.q.upgrade,
 		character.map != upgrade_loc.map,
-		distance(upgrade_loc, character) > 500
+		distance(upgrade_loc, character) > 400
 	].some(s => s == true)) {
 		setTimeout(upgrade_loop, 1000, ...arguments)
 		return
@@ -120,7 +120,7 @@ async function upgrade_loop() {
 	let available_scrolls = ['scroll0', 'scroll1']
 	let item_upgrade = character.items
 		.reduce((acc, cur) => {
-			if (cur === null || cur.level === undefined || G.items[cur.name].upgrade === undefined) return acc
+			if (cur == null || cur?.level === undefined || !G.items[cur.name].upgrade) return acc
 			if (cur.level < acc.level && upgrade_whitelist.includes(cur.name) && available_scrolls.includes(get_scroll(cur)) && cur.level < 7) return cur
 			else return acc
 		},
@@ -135,8 +135,9 @@ async function upgrade_loop() {
 	let req_scroll = get_scroll(character.items[idx_upgrade])
 	if (locate_item(req_scroll) === -1) buy(req_scroll)
 
-	use_skill('massproduction')
-	set_message(`${item_upgrade.name}`)
+	if (item_upgrade.level >= 2) use_skill('massproductionpp')
+	else use_skill('massproduction')
+
 	upgrade(idx_upgrade, locate_item(req_scroll)).then((data) => {
 		upgrade_loop()
 	})
@@ -176,7 +177,7 @@ async function combine_loop() {
 	let idx_to_upgrade = to_upgrade.slice(0, 3)
 
 	if (locate_item(req_scroll) == -1) buy(req_scroll)
-	use_skill('massproduction')
+	use_skill('massproductionpp')
 
 	compound(...idx_to_upgrade, locate_item(req_scroll)).then((data) => {
 		combine_loop()
@@ -220,13 +221,17 @@ async function sell_loop() {
 			return
 		}
 
-		let to_sell = character.items.findIndex((val, key) => sell_whitelist.includes(val?.name))
-		if (to_sell == -1) {
+		// let to_sell = character.items.findIndex((val, key) => sell_whitelist.includes(val?.name))
+		let to_sell = character.items
+			.map((v, k) => k)
+			.filter(k => sell_whitelist.includes(character.items[k]?.name))
+
+		if (!to_sell) {
 			setTimeout(sell_loop, 1000, ...arguments)
 			return
 		}
 
-		sell(to_sell)
+		to_sell.forEach(s => sell(s))
 		setTimeout(sell_loop, 1000, ...arguments)
 
 	}
@@ -312,7 +317,8 @@ async function do_attack() {
 		if (get('t_query') == 'dragold') {
 			let player_count = Object.entries(parent.entities).filter(([id, char]) => char.type == 'character').length
 			let in_party = Object.keys(get_party()).length > 0
-			if (target && can_attack(target) && in_party && player_count > 5) {
+			let correct_party = Object.keys(get_party().some(s => s.name == dragold_priest))
+			if (target && can_attack(target) && in_party && correct_party && player_count > 5) {
 				await attack(target)
 			}
 		}
@@ -400,7 +406,8 @@ async function do_heal_attack() {
 		if (get('t_query') == 'dragold') {
 			let player_count = Object.entries(parent.entities).filter(([id, char]) => char.type == 'character').length
 			let in_party = Object.keys(get_party()).length > 0
-			if (target && can_attack(target) && in_party && player_count > 5) {
+			let correct_party = Object.keys(get_party().some(s => s.name == dragold_priest))
+			if (target && can_attack(target) && in_party && correct_party && player_count > 5) {
 				await attack(target)
 			}
 		}
