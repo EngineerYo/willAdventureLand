@@ -1,3 +1,9 @@
+
+// const { Ranger_Strategy } = require_code(30)
+// let strategy = new Ranger_Strategy()
+// strategy.init()
+
+
 const { ranger_loop, give_merchant_loop, draw_loop, form_party } = require_code('21_Loops')
 const { afk_spots } = require_code('98_Constants')
 

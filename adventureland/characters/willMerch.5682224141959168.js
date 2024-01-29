@@ -23,9 +23,9 @@ character.all((name, data) => {
 	report()
 })
 
-const {draw_monster_ranges} = require_code(99)
-const {monster_lookup} = require_code(98)
-draw_monster_ranges(monster_lookup())
+const { draw_monster_ranges } = require_code(99)
+const { monster_lookup } = require_code(98)
+//draw_monster_ranges(monster_lookup())
 
 
 
