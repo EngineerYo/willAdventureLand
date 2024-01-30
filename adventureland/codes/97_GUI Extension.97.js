@@ -46,7 +46,7 @@ function update_xptimer() {
     }
     last_xp_checked_kill = character.xp;
     let xp_missing = parent.G.levels[character.level] - character.xp;
-    let seconds = Math.round(xp_missing / xp_rate);
+    let seconds = Math.round(xp_missing / (xp_rate / 3600));
     let minutes = Math.round(seconds / 60);
     let hours = Math.round(minutes / 60);
     let counter = `${hours}h ${minutes % 60}min`;
