@@ -27,6 +27,8 @@ class Strategy {
 			clearTimeout(this.intervals[interval_idx])
 		}
 
+		this.start_loops()
+
 		this.state = to
 		this.run()
 		return to
@@ -58,17 +60,17 @@ class Strategy {
 	async attack() {
 		loot()
 		try {
-			const attack_skill = this.select_attack()
-			const targets = this.get_target()
+			this.targets = this.get_target()
+			this.attack_skill = this.select_attack()
 
-			await use_skill(attack_skill, ...targets)
+			await use_skill(this.attack_skill, ...this.targets)
 			this.intervals['attack'] = setTimeout(this.run.bind(this), 1000 / character.frequency)
 		}
 		catch (e) {
 			let ms_to = 1000
 			if (e?.response == 'cooldown') ms_to = e.ms
 
-			this.intervals['attack'] = setTimeout(this.run.bind(this), 1000)
+			this.intervals['attack'] = setTimeout(this.run.bind(this), ms_to * 1.05)
 			console.warn(e)
 		}
 	}
@@ -114,7 +116,37 @@ class Strategy {
 
 	// DO-ER FUNCTIONS
 	get_target() {
-		var priority_list = [...GLOBAL_PRIORITY, this.query]
+		let priority_list = [...GLOBAL_PRIORITY, this.query]
+		let party_members = Object.keys(get_party())
+
+
+		let monsters = Object.values(parent.entities)
+			.filter(m => m.type == 'monster')
+			.filter(m => is_in_range(m, 'attack'))
+
+		monsters.forEach(m => {
+			if (m.target && party_members.includes(m.target)) m['high'] = true
+		})
+
+		monsters.sort((a, b) => {
+			if (a.high && !b.high) return 1
+			if (!a.high && b.high) return -1
+
+			let [pa, pb] = [priority_list.findIndex(m => a.mtype == m), priority_list.findIndex(m => b.mtype == m)]
+			if (pa < 0) pa = 100
+			if (pb < 0) pb = 100
+
+			// First, sort by mtype
+			if (pa < pb) return 1
+			if (pb < pa) return -1
+
+			// then, sort by distance
+			if (distance(a, character) < distance(b, character)) return 1
+			if (distance(a, character) > distance(b, character)) return -1
+		})
+
+		console.log(monsters)
+		return monsters
 
 		// Do we already have a target?
 		let target = get_targeted_monster()
@@ -179,7 +211,21 @@ class Strategy {
 			}
 		}
 	}
+	loop_skill(skill_name) {
+		if (!G.skills[skill_name]) {
+			console.warn(`${skill_name} does not exist`)
+			return false
+		}
+		if (!this[`skill_${skill_name}`]) {
+			console.warn(`${skill_name} not loaded into controller`)
+			return false
+		}
 
+		this[`skill_${skill_name}`]()
+	}
+	start_loops() {
+		return true
+	}
 	// SETUP
 	init() {
 		this.run()
@@ -200,24 +246,87 @@ class Ranger_Strategy extends Strategy {
 		super()
 	}
 	select_attack() {
-		let targets = this.get_target()
-			.filter(m => m.hp <= character.attack * G.skills['3shot'].damage_multiplier)
+		let targets = this.targets
+		if (targets[0]?.high) return 'attack'
 
-		if (targets.length >= 2) return '3shot'
+		let three_oneshots = 0
+		for (let i = 0; i < 2; i += 1) {
+			if (targets[i].hp < character.attack * G.skills['3shot'].damage_multiplier) three_oneshots += 1
+		}
+
+		if (three_oneshots >= 2) return '3shot'
 		return 'attack'
 	}
 
-}
-class Priest_Strategy extends Strategy {
+	start_loops() {
+		this.loop_skill('huntersmark')
+		this.loop_skill('supershot')
+	}
+	skill_huntersmark() {
+		try {
+			// Does the target already have huntersmark?
+			if (this.targets[0].s['huntersmark']) {
+				this.intervals['huntersmark'] = setTimeout(this.skill_huntersmark.bind(this), this.targets[0].s['huntersmark'].ms)
+				return
+			}
+			// Do we even need huntersmark?
+			if ((G.skills['huntersmark'].duration / (character.frequency * 1000)) * character.attack) {
+				this.intervals['huntersmark'] = setTimeout(this.skill_huntersmark.bind(this), 250)
+				return
+			}
+			// Can we even cast huntersmark?
+			if (character.mp < G.skills['huntersmark'].mp) {
+				this.intervals['huntersmark'] = setTimeout(this.skill_huntersmark.bind(this), 250)
+				return
+			}
 
-}
+			use_skill('huntersmark', this.targets[0])
+			this.intervals['huntersmark'] = setTimeout(this.skill_huntersmark.bind(this), G.skills['huntersmark'].cooldown)
+		}
+		catch (e) {
+			console.warn(e)
+			this.intervals['huntersmark'] = setTimeout(this.skill_huntersmark.bind(this), 500)
+		}
 
-class Skill {
-	constructor(skill_name) {
-		this.skill_name = skill_name
+	}
+	skill_supershot() {
+		try {
+			// Can we even cast supershot?
+			if (character.mp < G.skills['supershot'].mp) {
+				this.intervals['supershot'] = setTimeout(this.skill_supershot.bind(this), 250)
+				return
+			}
+
+			if (is_on_cooldown('supershot')) {
+				this.intervals['supershot'] = setTimeout(this.skill_supershot.bind(this), ms_to_next_skill('supershot'))
+				return
+			}
+
+			use_skill('supershot', this.get_target()[0])
+			this.intervals['supershot'] = setTimeout(this.skill_supershot.bind(this), G.skills['supershot'].cooldown)
+		}
+		catch (e) {
+			console.warn(e)
+			this.intervals['supershot'] = setTimeout(this.skill_supershot.bind(this), 500)
+		}
 
 	}
 }
+class Priest_Strategy extends Strategy {
+	select_attack() {
+		let heal_targets = Object.keys(get_party())
+			.map(member => get_player(member))
+			.filter(member => member && member.max_hp - member.hp >= character.heal * 0.75)
+			.filter(member => distance(member, character) < character.range)
+			.sort(member => member.hp)
+
+		if (!heal_targets.length) return 'attack'
+
+		this.targets = heal_targets
+		return 'heal'
+	}
+}
+
 module = {
 	exports: {
 		Strategy, Ranger_Strategy
