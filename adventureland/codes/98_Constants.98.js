@@ -156,5 +156,6 @@ var module = {
 		exchange_loc: { x: -20, y: -478, map: 'main', map_obj: G.maps['main'] },
 		GLOBAL_PRIORITY: ['grinch', 'phoenix', 'cutebee'],
 		monster_lookup,
+		get_center,
 	},
 }
