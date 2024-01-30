@@ -1,4 +1,4 @@
-const { GLOBAL_PRIORITY } = require_code(98)
+const { GLOBAL_PRIORITY, get_center } = require_code(98)
 const { ms_to_next_skill: ms_skill, in_boundary } = require_code(2)
 
 class Strategy {
@@ -7,6 +7,7 @@ class Strategy {
 		this.intervals = {}
 
 		this.query = get('t_query') || get('query')
+		this.farm_area = null
 
 		this.states = ['travel', 'attack']
 		this.state = 'travel'
@@ -21,6 +22,7 @@ class Strategy {
 		}
 
 		for (let interval_idx in this.intervals) {
+			if (interval_idx == 'mp') continue
 			clearTimeout(this.intervals[interval_idx])
 		}
 
@@ -30,11 +32,18 @@ class Strategy {
 	}
 
 	async travel() {
-		if (at_destination()) this.set_state('attack')
-
-		// FIGURE OUT WHERE TO SMART MOVE TO
-		let move_res = await smart_move(destination)
-		if (move_res?.success) this.set_state('attack')
+		log(this.query)
+		this.farm_area = this.find_target()
+		if (this.at_destination(this.farm_area.boundary)) {
+			log('At destination!')
+			this.set_state('attack')
+		}
+		else {
+			log('Moving!')
+			let move_to = get_center(this.farm_area)
+			let move_res = await smart_move(move_to)
+			if (move_res?.success) this.set_state('attack')
+		}
 	}
 	async attack() {
 		loot()
@@ -56,25 +65,40 @@ class Strategy {
 
 	async run() {
 		try {
-			this[this.state]
+			this[this.state]()
 		}
 		catch (e) {
 			console.warn(e)
 		}
-
 	}
 
 	/**
-	 * @param destination A boundary object returned from monster_lookup
+	 * @param mtype Target mtype to find. Returns highest scoring area
+	 * @returns Monster boundary object
 	 */
-	at_destination(destination = this.query) {
+	find_target(mtype = this.query) {
+		let farm_areas = get('MONSTERS')
+		if (!farm_areas[mtype]) return false
+
+		let mtype_areas = farm_areas[mtype]
+
+		let to_farm = mtype_areas
+			.reduce((acc, cur) => {
+				if (acc.score < cur.score) return cur
+				return acc
+			})
+
+		this.farm_area = to_farm
+		return to_farm
+	}
+	/**
+	 * @param destination A boundary object returned from monster_lookup
+	 * @returns Boolean, depending if we're at the target or not
+	 */
+	at_destination(destination = this.farm_area) {
 		if (destination.map != character.map) return false
 		if (in_boundary(character, destination, character.range / 2)) return true
 		return false
-	}
-
-	travel(destination) {
-		return smart_move(destination)
 	}
 
 
@@ -118,37 +142,28 @@ class Strategy {
 	select_attack() {
 		return 'attack'
 	}
-	travel() {
-		if (smart.moving || (smart.searching && !smart.found)) return false
-
-		if (distance(character, spot) > 10 && !can_move_to(spot.x, spot.y)) {
-			smart_move({ x: spot.x, y: spot.y, map: spot.map })
-		}
-		else if (distance(character, spot) > 10 && can_move_to(spot.x, spot.y)) {
-			if (smart.moving) use_skill('stop')
-			move(spot.x, spot.y)
-		}
-	}
 	regen_mp() {
 		try {
 			// Should we use a potion?
-			if (character.mp + 500 < character.max_mp && locate_item('mpot1') !== -1) {
+			if (character.mp + 400 < character.max_mp && locate_item('mpot1') !== -1) {
+				let duration = G.skills['use_mp'].cooldown
 				use_skill('use_mp')
-				setTimeout(this.regen_mp.bind(this), G.skills['use_mp'].cooldown)
-			}
-			else if (character.mp + 100 < character.max_mp) {
-				use_skill('regen_mp')
-				setTimeout(this.regen_mp.bind(this), G.skills['use_mp'].cooldown * G.skills['regen_mp'].cooldown_multiplier)
+				this.intervals['mp'] = setTimeout(this.regen_mp.bind(this), duration)
 			}
 			else {
-				setTimeout(this.regen_mp.bind(this), 1000)
+				let duration = 250
+				this.intervals['mp'] = setTimeout(this.regen_mp.bind(this), duration)
 			}
 		}
 		catch (e) {
-			if (e?.response == 'cooldown') setTimeout(this.regen_mp.bind(this), e.ms)
+			console.log(e)
+			if (e?.response == 'cooldown') {
+				let duration = e.ms
+				this.intervals['mp'] = setTimeout(this.regen_mp.bind(this), duration)
+			}
 			else {
-				console.error(e)
-				setTimeout(this.regen_mp.bind(this), 1000)
+				let duration = 250
+				this.intervals['mp'] = setTimeout(this.regen_mp.bind(this), duration)
 			}
 		}
 	}
@@ -157,10 +172,14 @@ class Strategy {
 	init() {
 		this.run()
 		this.regen_mp()
+
+		let self = this
 		setInterval(function () {
 			let to_query = get('t_query') || get('query')
-			if (to_query != this.destination)
-				this.destination = get('t_query') || get('query')
+			if (to_query != self.query) {
+				self.query = to_query
+				self.set_state('travel')
+			}
 		}, 1000)
 	}
 }

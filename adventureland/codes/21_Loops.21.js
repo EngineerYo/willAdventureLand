@@ -89,9 +89,13 @@ async function form_party() {
 				if (Object.keys(get_party()).length == 4) break
 
 				// If not, start sending invites
-				get_characters().map(other => other.name)
-					.filter(other => other != character.name && (!in_party || !in_party.includes(other)))
-					.forEach(other => send_party_invite(other))
+				let chars = get_characters()
+					.filter(other => other.name != character.name && (!in_party || !in_party.includes(other.name)))
+					.filter(other => other.online)
+					.forEach(other => send_party_invite(other.name))
+				// get_characters().map(other => other.name)
+				// 	.filter(other => other != character.name && (!in_party || !in_party.includes(other)))
+				// 	.forEach(other => send_party_invite(other))
 				break
 			default:
 				if (in_party && in_party.includes(party_lead) || get('t_query') == 'dragold') break
