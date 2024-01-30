@@ -6,7 +6,8 @@ class Strategy {
 		this.targets = []
 		this.intervals = {}
 
-		this.query = get('t_query') || get('query')
+		// this.query = get('t_query') || get('query')
+		this.query = get('query')
 		this.farm_area = null
 
 		this.states = ['travel', 'attack']
@@ -108,7 +109,7 @@ class Strategy {
 		if (destination.map != character.map) return false
 		if (in_boundary(character, destination, character.range / 2)) return true
 		return false
-	}
+	} 3
 
 
 	// DO-ER FUNCTIONS
@@ -129,7 +130,9 @@ class Strategy {
 				.filter(m => party_members.includes(m.target))
 				.sort(m => distance(character, m))
 
-			if (party_targets.length) return party_targets
+			if (party_targets.length) {
+				return party_targets
+			}
 			else {
 				// If nobody else has a target, choose a new one
 				let target_list = potential_targets
@@ -166,7 +169,6 @@ class Strategy {
 			}
 		}
 		catch (e) {
-			console.log(e)
 			if (e?.response == 'cooldown') {
 				let duration = e.ms
 				this.intervals['mp'] = setTimeout(this.regen_mp.bind(this), duration)
@@ -185,7 +187,7 @@ class Strategy {
 
 		let self = this
 		setInterval(function () {
-			let to_query = get('t_query') || get('query')
+			let to_query = get('query')
 			if (to_query != self.query) {
 				self.query = to_query
 				self.set_state('travel')
@@ -204,6 +206,9 @@ class Ranger_Strategy extends Strategy {
 		if (targets.length >= 2) return '3shot'
 		return 'attack'
 	}
+
+}
+class Priest_Strategy extends Strategy {
 
 }
 
