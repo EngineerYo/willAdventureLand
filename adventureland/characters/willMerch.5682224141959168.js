@@ -25,7 +25,6 @@ character.all((name, data) => {
 
 const { draw_monster_ranges } = require_code(99)
 //const { monster_lookup } = require_code(98)
-//draw_monster_ranges(monster_lookup())
 
 
 
