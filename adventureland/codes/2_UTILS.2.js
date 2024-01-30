@@ -30,6 +30,6 @@ var module = {
 			if (G.items[inv_item.name].compound) return `cscroll${passed}`
 			else if (G.items[inv_item.name].upgrade) return `scroll${passed}`
 			else return false
-		}
+		},
 	},
 }

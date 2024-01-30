@@ -39,19 +39,19 @@ function update_xptimer() {
     let now = new Date();
     let time = Math.round((now.getTime() - last_minutes_checked.getTime()) / 1000);
     if (time < 1) return;
-    let xp_rate = Math.round((character.xp - last_xp_checked_minutes) / time);
+    let xp_rate = Math.round(((character.xp - last_xp_checked_minutes) / time) * 3600);
     if (time > 60 * minute_refresh) {
         last_minutes_checked = new Date();
         last_xp_checked_minutes = character.xp;
     }
     last_xp_checked_kill = character.xp;
     let xp_missing = parent.G.levels[character.level] - character.xp;
-    let seconds = Math.round(xp_missing / xp_rate);
+    let seconds = Math.round(xp_missing / (xp_rate / 3600));
     let minutes = Math.round(seconds / 60);
     let hours = Math.round(minutes / 60);
     let counter = `${hours}h ${minutes % 60}min`;
     $('#xpcounter').text(counter);
-    $('#xprate').text(`${ncomma(xp_rate)} XP/s`);
+    $('#xprate').text(`${ncomma(xp_rate)} XP/hr`);
 }
 function ncomma(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
