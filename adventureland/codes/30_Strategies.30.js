@@ -32,15 +32,24 @@ class Strategy {
 	}
 
 	async travel() {
-		log(this.query)
 		this.farm_area = this.find_target()
 		if (this.at_destination(this.farm_area.boundary)) {
-			log('At destination!')
 			this.set_state('attack')
 		}
 		else {
 			log('Moving!')
-			let move_to = get_center(this.farm_area)
+			let party_keys = Object.entries(get_party())
+				.filter(([k, v]) => v.type != 'merchant')
+				.map(([k, v]) => k)
+				.sort() // sort via alphabet
+
+			// Offset us from the center point
+			let my_idx = party_keys.findIndex(s => s == character.name)
+			let r = 20
+			let offset = { x: r * Math.cos((2 * Math.PI) / (my_idx + 1)), y: r * Math.sin((2 * Math.PI) / (my_idx + 1)) }
+			let center = get_center(this.farm_area)
+
+			let move_to = { x: center.x + offset.x, y: center.y + offset.y, map: this.farm_area.map }
 			let move_res = await smart_move(move_to)
 			if (move_res?.success) this.set_state('attack')
 		}
@@ -104,7 +113,8 @@ class Strategy {
 
 	// DO-ER FUNCTIONS
 	get_target() {
-		var priority_list = [...GLOBAL_PRIORITY, get('query')]
+		var priority_list = [...GLOBAL_PRIORITY, this.query]
+
 		// Do we already have a target?
 		let target = get_targeted_monster()
 
@@ -146,7 +156,7 @@ class Strategy {
 		try {
 			// Should we use a potion?
 			if (character.mp + 400 < character.max_mp && locate_item('mpot1') !== -1) {
-				let duration = G.skills['use_mp'].cooldown
+				let duration = G.skills['use_mp'].cooldown * 1.05
 				use_skill('use_mp')
 				this.intervals['mp'] = setTimeout(this.regen_mp.bind(this), duration)
 			}
