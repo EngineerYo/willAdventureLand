@@ -124,15 +124,13 @@ class Strategy {
 		let monsters = Object.values(parent.entities)
 			.filter(m => m.type == 'monster')
 			.filter(m => is_in_range(m, 'attack'))
+			.filter(m => priority_list.includes(m.mtype))
 
 		monsters.forEach(m => {
 			if (m.target && party_members.includes(m.target)) m['high'] = true
 		})
 
 		monsters.sort((a, b) => {
-			if (a.high && !b.high) return 1
-			if (!a.high && b.high) return -1
-
 			let [pa, pb] = [priority_list.findIndex(m => a.mtype == m), priority_list.findIndex(m => b.mtype == m)]
 			if (pa < 0) pa = 100
 			if (pb < 0) pb = 100
@@ -142,8 +140,8 @@ class Strategy {
 			if (pb < pa) return -1
 
 			// then, sort by distance
-			if (distance(a, character) < distance(b, character)) return 1
-			if (distance(a, character) > distance(b, character)) return -1
+			if (distance(a, character) > distance(b, character)) return 1
+			if (distance(a, character) < distance(b, character)) return -1
 		})
 
 		return monsters
@@ -187,15 +185,16 @@ class Strategy {
 	select_attack() {
 		return 'attack'
 	}
-	async regen_mp() {
+	regen_mp() {
 		try {
 			// Should we use a potion?
 			if (character.mp + 400 < character.max_mp && locate_item('mpot1') !== -1) {
 				let duration = G.skills['use_mp'].cooldown * 1.05
-				await use_skill('use_mp')
+				use_skill('use_mp')
 				this.intervals['mp'] = setTimeout(this.regen_mp.bind(this), duration)
 			}
 			else {
+				console.log()
 				let duration = 250
 				this.intervals['mp'] = setTimeout(this.regen_mp.bind(this), duration)
 			}
@@ -344,6 +343,10 @@ class Priest_Strategy extends Strategy {
 			}
 			if (is_on_cooldown('partyheal')) {
 				this.intervals['partyheal'] = setTimeout(this.skill_partyheal.bind(this), ms_skill('partyheal'))
+				return
+			}
+			if (!is_on_cooldown('heal')) {
+				this.intervals['partyheal'] = setTimeout(this.skill_partyheal.bind(this), 50)
 				return
 			}
 
