@@ -187,12 +187,12 @@ class Strategy {
 	select_attack() {
 		return 'attack'
 	}
-	regen_mp() {
+	async regen_mp() {
 		try {
 			// Should we use a potion?
 			if (character.mp + 400 < character.max_mp && locate_item('mpot1') !== -1) {
 				let duration = G.skills['use_mp'].cooldown * 1.05
-				use_skill('use_mp')
+				await use_skill('use_mp')
 				this.intervals['mp'] = setTimeout(this.regen_mp.bind(this), duration)
 			}
 			else {
@@ -269,7 +269,7 @@ class Ranger_Strategy extends Strategy {
 		this.loop_skill('huntersmark')
 		this.loop_skill('supershot')
 	}
-	skill_huntersmark() {
+	async skill_huntersmark() {
 		try {
 			// Does the target already have huntersmark?
 			if (this.targets[0].s['huntersmark']) {
@@ -287,7 +287,7 @@ class Ranger_Strategy extends Strategy {
 				return
 			}
 
-			use_skill('huntersmark', this.targets[0])
+			await use_skill('huntersmark', this.targets[0])
 			this.intervals['huntersmark'] = setTimeout(this.skill_huntersmark.bind(this), G.skills['huntersmark'].cooldown)
 		}
 		catch (e) {
@@ -296,7 +296,7 @@ class Ranger_Strategy extends Strategy {
 		}
 
 	}
-	skill_supershot() {
+	async skill_supershot() {
 		try {
 			// Can we even cast supershot?
 			if (character.mp < G.skills['supershot'].mp) {
@@ -309,7 +309,7 @@ class Ranger_Strategy extends Strategy {
 				return
 			}
 
-			use_skill('supershot', this.get_target()[0])
+			await use_skill('supershot', this.get_target()[0])
 			this.intervals['supershot'] = setTimeout(this.skill_supershot.bind(this), G.skills['supershot'].cooldown)
 		}
 		catch (e) {
@@ -332,10 +332,91 @@ class Priest_Strategy extends Strategy {
 		this.targets = heal_targets
 		return 'heal'
 	}
+	start_loops() {
+		this.loop_skill('partyheal')
+	}
+	async skill_partyheal() {
+		try {
+			// Do we have enough mana?
+			if (character.mp < G.skills['partyheal'].mp) {
+				this.intervals['partyheal'] = setTimeout(this.skill_partyheal.bind(this), 50)
+				return
+			}
+			if (is_on_cooldown('partyheal')) {
+				this.intervals['partyheal'] = setTimeout(this.skill_partyheal.bind(this), ms_skill('partyheal'))
+				return
+			}
+
+			// move this calculation to static?
+			const output = G.skills['partyheal'].levels
+				.reduce((acc, cur) => {
+					if (character.level >= cur[0]) return cur
+					return acc
+				}, [-1, 0])[1]
+
+			let heal_targets = Object.keys(get_party())
+				.map(member => get_player(member))
+				.filter(member => member && member.max_hp - member.hp >= output * 0.75)
+
+			if (heal_targets.length == 0) {
+				this.intervals['partyheal'] = setTimeout(this.skill_partyheal.bind(this), 50)
+				return
+			}
+			console.log(heal_targets)
+
+			await use_skill('partyheal')
+			this.intervals['partyheal'] = setTimeout(this.skill_partyheal.bind(this), G.skills['partyheal'].cooldown)
+		}
+		catch (e) {
+			console.warn(e)
+			this.intervals['partyheal'] = setTimeout(this.skill_partyheal.bind(this), 50)
+		}
+	}
+}
+
+class Mage_Strategy extends Strategy {
+	start_loops() {
+		this.loop_skill('energize')
+	}
+	async skill_energize() {
+		try {
+			// Do we have enough mana?
+			if (character.mp < character.max_mp / 2) {
+				this.intervals['energize'] = setTimeout(this.skill_energize.bind(this), 500)
+				return
+			}
+
+			if (is_on_cooldown('energize')) {
+				this.intervals['energize'] = setTimeout(this.skill_energize.bind(this), ms_skill('energize'))
+				return
+			}
+
+			let energize_mana = character.mp - (character.max_mp / 2)
+
+			let energize_target = Object.keys(get_party())
+				.map(member => get_player(member))
+				.filter(member => member && member.max_mp - member.mp > 0)
+				.filter(member => distance(member, character) < G.skills['energize'].range)
+				.sort(member => member.mp)
+
+			if (energize_target.length == 0) {
+				this.intervals['energize'] = setTimeout(this.skill_energize.bind(this), 500)
+				return
+			}
+
+			await use_skill('energize', energize_target[0], energize_mana)
+			this.intervals['energize'] = setTimeout(this.skill_energize.bind(this), G.skills['energize'].cooldown)
+		}
+		catch (e) {
+			console.warn(e)
+			this.intervals['energize'] = setTimeout(this.skill_energize.bind(this), 500)
+
+		}
+	}
 }
 
 module = {
 	exports: {
-		Strategy, Ranger_Strategy
+		Strategy, Ranger_Strategy, Priest_Strategy, Mage_Strategy
 	}
 }
