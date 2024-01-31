@@ -53,12 +53,13 @@ class Strategy {
 			let center = get_center(this.farm_area)
 
 			let move_to = { x: center.x + offset.x, y: center.y + offset.y, map: this.farm_area.map }
+			console.log(move_to)
 			let move_res = await smart_move(move_to)
 			if (move_res?.success) this.set_state('attack')
 		}
 	}
 	async attack() {
-		loot()
+		this.loot()
 		try {
 			this.targets = this.get_target()
 			this.attack_skill = this.select_attack()
@@ -145,7 +146,6 @@ class Strategy {
 			if (distance(a, character) > distance(b, character)) return -1
 		})
 
-		console.log(monsters)
 		return monsters
 
 		// Do we already have a target?
@@ -226,6 +226,13 @@ class Strategy {
 	start_loops() {
 		return true
 	}
+	loot() {
+		let chests = get_chests()
+		for (let [id, val] of Object.entries(chests)) {
+			loot(id)
+		}
+		return chests.length
+	}
 	// SETUP
 	init() {
 		this.run()
@@ -298,7 +305,7 @@ class Ranger_Strategy extends Strategy {
 			}
 
 			if (is_on_cooldown('supershot')) {
-				this.intervals['supershot'] = setTimeout(this.skill_supershot.bind(this), ms_to_next_skill('supershot'))
+				this.intervals['supershot'] = setTimeout(this.skill_supershot.bind(this), ms_skill('supershot'))
 				return
 			}
 
