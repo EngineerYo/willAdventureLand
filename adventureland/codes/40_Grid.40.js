@@ -16,6 +16,9 @@ class Grid {
         this.construct()
     }
 
+    clean_data() {
+        let points = []
+    }
     construct() {
         for (let x = this.min_x; x < this.max_x; x += this.resolution) {
             for (let y = this.min_y; y < this.max_y; y += this.resolution) {
@@ -57,9 +60,13 @@ class Grid {
     render_boundaries() {
         for (let [x, y0, y1] of this.x_lines) {
             draw_line(x, y0, x, y1, 1, 0xFFFFFF)
+            draw_circle(x, y0, 2, 0, 0xFFFFFF)
+            draw_circle(x, y1, 2, 0, 0xFFFFFF)
         }
         for (let [y, x0, x1] of this.y_lines) {
             draw_line(x0, y, x1, y, 1, 0xFFFFFF)
+            draw_circle(x0, y, 2, 0, 0xFFFFFF)
+            draw_circle(x1, y, 2, 0, 0xFFFFFF)
         }
     }
 }
