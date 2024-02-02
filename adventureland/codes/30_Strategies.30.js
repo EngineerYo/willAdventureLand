@@ -35,27 +35,34 @@ class Strategy {
 	}
 
 	async travel() {
-		this.farm_area = this.find_target()
-		if (this.at_destination(this.farm_area.boundary)) {
-			this.set_state('attack')
+		try {
+			this.farm_area = this.find_target()
+			if (this.at_destination(this.farm_area.boundary)) {
+				this.set_state('attack')
+			}
+			else {
+				log('Moving!')
+				let party_keys = Object.entries(get_party())
+					.filter(([k, v]) => v.type != 'merchant')
+					.map(([k, v]) => k)
+					.sort() // sort via alphabet
+
+				// Offset us from the center point
+				let my_idx = party_keys.findIndex(s => s == character.name)
+				let r = 20
+				let offset = { x: r * Math.cos((2 * Math.PI) / (my_idx + 1)), y: r * Math.sin((2 * Math.PI) / (my_idx + 1)) }
+				let center = get_center(this.farm_area)
+
+				let move_to = { x: center.x + offset.x, y: center.y + offset.y, map: this.farm_area.map }
+				console.log(move_to)
+				let move_res = await smart_move(move_to)
+				if (move_res?.success) this.set_state('attack')
+			}
+
 		}
-		else {
-			log('Moving!')
-			let party_keys = Object.entries(get_party())
-				.filter(([k, v]) => v.type != 'merchant')
-				.map(([k, v]) => k)
-				.sort() // sort via alphabet
-
-			// Offset us from the center point
-			let my_idx = party_keys.findIndex(s => s == character.name)
-			let r = 20
-			let offset = { x: r * Math.cos((2 * Math.PI) / (my_idx + 1)), y: r * Math.sin((2 * Math.PI) / (my_idx + 1)) }
-			let center = get_center(this.farm_area)
-
-			let move_to = { x: center.x + offset.x, y: center.y + offset.y, map: this.farm_area.map }
-			console.log(move_to)
-			let move_res = await smart_move(move_to)
-			if (move_res?.success) this.set_state('attack')
+		catch (e) {
+			console.warn(e)
+			setTimeout(this.travel.bind(this), 250)
 		}
 	}
 	async attack() {
@@ -270,22 +277,27 @@ class Ranger_Strategy extends Strategy {
 	}
 	async skill_huntersmark() {
 		try {
+			if (!this.targets) this.targets = this.get_target()
 			// Does the target already have huntersmark?
-			if (this.targets[0].s['huntersmark']) {
+			if (this.targets[0]?.s['huntersmark']) {
+				console.log(`HM\tHas HM`)
 				this.intervals['huntersmark'] = setTimeout(this.skill_huntersmark.bind(this), this.targets[0].s['huntersmark'].ms)
 				return
 			}
 			// Do we even need huntersmark?
-			if ((G.skills['huntersmark'].duration / (character.frequency * 1000)) * character.attack) {
+			if ((G.skills['huntersmark'].duration / (character.frequency * 1000)) * character.attack > this.targets[0].hp) {
+				console.log(`HM\tLow HP`)
 				this.intervals['huntersmark'] = setTimeout(this.skill_huntersmark.bind(this), 250)
 				return
 			}
 			// Can we even cast huntersmark?
 			if (character.mp < G.skills['huntersmark'].mp) {
+				console.log(`HM\tNo MP`)
 				this.intervals['huntersmark'] = setTimeout(this.skill_huntersmark.bind(this), 250)
 				return
 			}
 
+			console.log(`HM\tUsing`)
 			await use_skill('huntersmark', this.targets[0])
 			this.intervals['huntersmark'] = setTimeout(this.skill_huntersmark.bind(this), G.skills['huntersmark'].cooldown)
 		}
